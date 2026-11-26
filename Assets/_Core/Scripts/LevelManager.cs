@@ -34,9 +34,9 @@ namespace ZoombieBoy.Core {
             float centerRow = (mapData.Rows - 1) / 2f;
             float centerCol = (mapData.Columns - 1) / 2f;
 
-            // We offset the LevelRoot so the center of the map is at world (0,0,0)
             if (levelRoot != null) {
-                levelRoot.position = new Vector3(-centerCol * cellSize, 0f, -centerRow * cellSize);
+                // O sinal de + no Z compensa o fato de o mapa estar crescendo para trás
+                levelRoot.position = new Vector3(-centerCol * cellSize, 0f, centerRow * cellSize);
             }
 
             // 3. Build the grid
@@ -77,12 +77,14 @@ namespace ZoombieBoy.Core {
         }
 
         public Vector3 CellToWorld(int row, int col) {
-            return new Vector3(col * cellSize, 0f, row * cellSize);
+            // Invert the row calculation on the Z axis so Row 0 is at the back
+            return new Vector3(col * cellSize, 0f, -(row * cellSize));
         }
 
         public Vector2Int WorldToCell(Vector3 worldPos) {
             int col = Mathf.RoundToInt(worldPos.x / cellSize);
-            int row = Mathf.RoundToInt(worldPos.z / cellSize);
+            // Invert here too so the math matches
+            int row = Mathf.RoundToInt(-worldPos.z / cellSize);
             return new Vector2Int(row, col);
         }
 

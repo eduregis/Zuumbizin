@@ -26,7 +26,7 @@ namespace ZoombieBoy.Core {
                 dir = new Vector2Int(0, input.x > 0 ? 1 : -1);
             // Up / Down
             else if (Mathf.Abs(input.y) > 0.1f)
-                dir = new Vector2Int(input.y > 0 ? 1 : -1, 0); // W = +1 (Avança para o fundo), S = -1
+                dir = new Vector2Int(input.y > 0 ? -1 : 1, 0); // W (-1) e S (+1)
 
             if (dir == Vector2Int.zero) return;
 
