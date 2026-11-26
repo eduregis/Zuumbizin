@@ -71,10 +71,6 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Unity Package Manager cache
-/Packages/packages-lock.json
-/Packages/manifest.json
-
 # Unity Package Manager cache data
 /[Ll]ibrary/UnityPackageManager/
 
