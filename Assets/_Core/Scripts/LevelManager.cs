@@ -5,8 +5,8 @@ namespace ZoombieBoy.Core {
         [Header("References")]
         [SerializeField] private MapData mapData;
         [SerializeField] private Transform levelRoot;
-        [SerializeField] private GameObject floorPrefab;
-        [SerializeField] private GameObject wallPrefab;
+        [SerializeField] private GameObject floorPrefab; // Square 2D com rotação 90 no X
+        [SerializeField] private GameObject wallPrefab;  // Square 2D com Billboard
         [SerializeField] private GameObject playerPrefab;
 
         [Header("Grid")]
@@ -29,26 +29,31 @@ namespace ZoombieBoy.Core {
                     Destroy(levelRoot.GetChild(i).gameObject);
             }
 
-            // 2. Calculate offset to center the map
-            // If map is 3x3, rows-1 is 2. 2 / 2 = 1. Center is at cell (1,1).
+            // 2. Center the map
             float centerRow = (mapData.Rows - 1) / 2f;
             float centerCol = (mapData.Columns - 1) / 2f;
 
             if (levelRoot != null) {
-                // O sinal de + no Z compensa o fato de o mapa estar crescendo para trás
                 levelRoot.position = new Vector3(-centerCol * cellSize, 0f, centerRow * cellSize);
             }
 
             // 3. Build the grid
             for (int r = 0; r < mapData.Rows; r++) {
                 for (int c = 0; c < mapData.Columns; c++) {
-                    TileType tile = mapData.GetTile(r, c);
-                    GameObject prefab = tile == TileType.Floor ? floorPrefab : wallPrefab;
-                    if (prefab == null) continue;
-
                     Vector3 pos = CellToWorld(r, c);
-                    GameObject instance = Instantiate(prefab, pos, Quaternion.identity, levelRoot);
-                    instance.name = $"Tile_{r}_{c}_{tile}";
+                    TileType tile = mapData.GetTile(r, c);
+
+                    // Always instantiate the floor first
+                    if (floorPrefab != null) {
+                        GameObject floorInstance = Instantiate(floorPrefab, pos, floorPrefab.transform.rotation, levelRoot);
+                        floorInstance.name = $"Floor_{r}_{c}";
+                    }
+
+                    // If it's a wall, instantiate the wall on top
+                    if (tile == TileType.Wall && wallPrefab != null) {
+                        GameObject wallInstance = Instantiate(wallPrefab, pos, Quaternion.identity, levelRoot);
+                        wallInstance.name = $"Wall_{r}_{c}";
+                    }
                 }
             }
 
@@ -62,11 +67,9 @@ namespace ZoombieBoy.Core {
                 }
 
                 Vector3 spawnPos = CellToWorld(spawn.x, spawn.y);
-                spawnPos.y += playerYOffset; // Lift the player above the floor
+                spawnPos.y += playerYOffset;
 
                 GameObject playerInstance = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
-
-                // Optional: Parent the player to LevelRoot so it moves with the map
                 playerInstance.transform.SetParent(levelRoot);
 
                 GridMovement movement = playerInstance.GetComponent<GridMovement>();
@@ -77,13 +80,11 @@ namespace ZoombieBoy.Core {
         }
 
         public Vector3 CellToWorld(int row, int col) {
-            // Invert the row calculation on the Z axis so Row 0 is at the back
             return new Vector3(col * cellSize, 0f, -(row * cellSize));
         }
 
         public Vector2Int WorldToCell(Vector3 worldPos) {
             int col = Mathf.RoundToInt(worldPos.x / cellSize);
-            // Invert here too so the math matches
             int row = Mathf.RoundToInt(-worldPos.z / cellSize);
             return new Vector2Int(row, col);
         }
